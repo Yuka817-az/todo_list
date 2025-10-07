@@ -10,7 +10,6 @@ export default function Home() {
 
   const changeText = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
-    console.log(text)
   };
 
   //追加ボタンを押したら新しいtodoが追加される
@@ -24,6 +23,7 @@ export default function Home() {
   //完了ボタンを押したらtodoが削除される
   const deleteTodo = (index: number) => {
     const newTodos = [...todos];
+    //配列から要素除去
     newTodos.splice(index, 1);
     setTodos(newTodos);
   };
