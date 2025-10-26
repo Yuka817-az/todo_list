@@ -4,10 +4,11 @@ import { deleteTodo, updateTodo } from '@/lib/database';
 // DELETE /api/todos/[id] - Todoを削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     
     if (isNaN(id)) {
       return NextResponse.json(
@@ -16,7 +17,7 @@ export async function DELETE(
       );
     }
 
-    const deleted = deleteTodo(id);
+    const deleted = await deleteTodo(id);
     
     if (deleted) {
       return NextResponse.json({ success: true, message: 'Todo deleted successfully' });
@@ -38,10 +39,11 @@ export async function DELETE(
 // PUT /api/todos/[id] - Todoを更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     
     if (isNaN(id)) {
       return NextResponse.json(
@@ -67,7 +69,7 @@ export async function PUT(
       );
     }
 
-    const updatedTodo = updateTodo(id, text, completed);
+    const updatedTodo = await updateTodo(id, text, completed);
     
     if (updatedTodo) {
       return NextResponse.json({ success: true, data: updatedTodo });

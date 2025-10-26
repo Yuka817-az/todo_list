@@ -1,123 +1,98 @@
-import fs from 'fs';
-import path from 'path';
-
-// データファイルのパス
-const dataPath = path.join(process.cwd(), 'data', 'todos.json');
-
-// データディレクトリとファイルの初期化
-function ensureDataFile() {
-  const dataDir = path.dirname(dataPath);
-  
-  // データディレクトリが存在しない場合は作成
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  
-  // データファイルが存在しない場合は作成
-  if (!fs.existsSync(dataPath)) {
-    fs.writeFileSync(dataPath, JSON.stringify([], null, 2));
-  }
-}
+import { prisma } from './prisma';
 
 // Todoの型定義
 export interface Todo {
   id: number;
   text: string;
   completed: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: string; // ISO string format
+  updated_at: string; // ISO string format
 }
 
-// データを読み込む
-function loadData(): Todo[] {
-  ensureDataFile();
+// すべてのTodoを取得
+export async function getAllTodos(): Promise<Todo[]> {
   try {
-    const data = fs.readFileSync(dataPath, 'utf8');
-    return JSON.parse(data);
+    const todos = await prisma.todo.findMany({
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
+    return todos.map(todo => ({
+      id: todo.id,
+      text: todo.text,
+      completed: todo.completed,
+      created_at: todo.created_at.toISOString(),
+      updated_at: todo.updated_at.toISOString()
+    }));
   } catch (error) {
-    console.error('データの読み込みエラー:', error);
-    return [];
-  }
-}
-
-// データを保存する
-function saveData(todos: Todo[]): void {
-  ensureDataFile();
-  try {
-    fs.writeFileSync(dataPath, JSON.stringify(todos, null, 2));
-  } catch (error) {
-    console.error('データの保存エラー:', error);
+    console.error('Error fetching todos:', error);
     throw error;
   }
 }
 
-// 新しいIDを生成
-function generateId(todos: Todo[]): number {
-  if (todos.length === 0) return 1;
-  return Math.max(...todos.map(todo => todo.id)) + 1;
-}
-
-// 現在の日時を取得
-function getCurrentDateTime(): string {
-  return new Date().toISOString();
-}
-
-// すべてのTodoを取得
-export function getAllTodos(): Todo[] {
-  const todos = loadData();
-  return todos.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-}
-
 // 新しいTodoを追加
-export function addTodo(text: string): Todo {
-  const todos = loadData();
-  const newTodo: Todo = {
-    id: generateId(todos),
-    text: text.trim(),
-    completed: false,
-    created_at: getCurrentDateTime(),
-    updated_at: getCurrentDateTime()
-  };
-  
-  todos.push(newTodo);
-  saveData(todos);
-  return newTodo;
+export async function addTodo(text: string): Promise<Todo> {
+  try {
+    const newTodo = await prisma.todo.create({
+      data: {
+        text: text.trim(),
+        completed: false
+      }
+    });
+    
+    return {
+      id: newTodo.id,
+      text: newTodo.text,
+      completed: newTodo.completed,
+      created_at: newTodo.created_at.toISOString(),
+      updated_at: newTodo.updated_at.toISOString()
+    };
+  } catch (error) {
+    console.error('Error adding todo:', error);
+    throw error;
+  }
 }
 
 // Todoを削除
-export function deleteTodo(id: number): boolean {
-  const todos = loadData();
-  const initialLength = todos.length;
-  const filteredTodos = todos.filter(todo => todo.id !== id);
-  
-  if (filteredTodos.length < initialLength) {
-    saveData(filteredTodos);
-    return true;
+export async function deleteTodo(id: number): Promise<boolean> {
+  try {
+    const result = await prisma.todo.delete({
+      where: { id }
+    });
+    return !!result;
+  } catch (error) {
+    console.error('Error deleting todo:', error);
+    return false;
   }
-  
-  return false;
 }
 
 // Todoを更新
-export function updateTodo(id: number, text: string, completed?: boolean): Todo | null {
-  const todos = loadData();
-  const todoIndex = todos.findIndex(todo => todo.id === id);
-  
-  if (todoIndex === -1) {
+export async function updateTodo(id: number, text: string, completed?: boolean): Promise<Todo | null> {
+  try {
+    const updateData: { text?: string; completed?: boolean } = {};
+    
+    if (text !== undefined) {
+      updateData.text = text.trim();
+    }
+    
+    if (completed !== undefined) {
+      updateData.completed = completed;
+    }
+    
+    const updatedTodo = await prisma.todo.update({
+      where: { id },
+      data: updateData
+    });
+    
+    return {
+      id: updatedTodo.id,
+      text: updatedTodo.text,
+      completed: updatedTodo.completed,
+      created_at: updatedTodo.created_at.toISOString(),
+      updated_at: updatedTodo.updated_at.toISOString()
+    };
+  } catch (error) {
+    console.error('Error updating todo:', error);
     return null;
   }
-  
-  const updatedTodo: Todo = {
-    ...todos[todoIndex],
-    text: text.trim(),
-    updated_at: getCurrentDateTime()
-  };
-  
-  if (completed !== undefined) {
-    updatedTodo.completed = completed;
-  }
-  
-  todos[todoIndex] = updatedTodo;
-  saveData(todos);
-  return updatedTodo;
 }

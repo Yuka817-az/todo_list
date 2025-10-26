@@ -4,7 +4,7 @@ import { getAllTodos, addTodo, Todo } from '@/lib/database';
 // GET /api/todos - すべてのTodoを取得
 export async function GET() {
   try {
-    const todos = getAllTodos();
+    const todos = await getAllTodos();
     return NextResponse.json({ success: true, data: todos });
   } catch (error) {
     console.error('Error fetching todos:', error);
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newTodo = addTodo(text.trim());
+    const newTodo = await addTodo(text.trim());
     return NextResponse.json({ success: true, data: newTodo }, { status: 201 });
   } catch (error) {
     console.error('Error adding todo:', error);
