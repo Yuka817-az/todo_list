@@ -11,10 +11,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  password  String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  todos     Todo[]
+}
+
 model Todo {
   id         Int      @id @default(autoincrement())
   text       String   @db.Text
   completed  Boolean  @default(false)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
