@@ -2,6 +2,7 @@
 
 import { NextPage } from "next";
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import "./globals.scss";
 
 interface Todo {
@@ -13,6 +14,7 @@ interface Todo {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
   const [text, setText] = useState<string>('')
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,7 +32,7 @@ export default function Home() {
       setError('');
       const response = await fetch('/api/todos');
       const data = await response.json();
-      
+
       if (data.success) {
         setTodos(data.data);
       } else {
@@ -50,7 +52,7 @@ export default function Home() {
   //追加ボタンを押したら新しいtodoが追加される
   const addTodos = async () => {
     if (!text.trim()) return;
-    
+
     try {
       setError('');
       const response = await fetch('/api/todos', {
@@ -60,9 +62,9 @@ export default function Home() {
         },
         body: JSON.stringify({ text: text.trim() }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setTodos([data.data, ...todos]);
         setText("");
@@ -81,9 +83,9 @@ export default function Home() {
       const response = await fetch(`/api/todos/${id}`, {
         method: 'DELETE',
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setTodos(todos.filter(todo => todo.id !== id));
       } else {
@@ -97,18 +99,30 @@ export default function Home() {
   return (
     <>
       <main>
-        <h1>Todo List</h1>
+        {session && (
+          <div className="user_container">
+            <span >
+              {session.user?.email || 'ユーザー'}
+            </span>
+            <button className="logout_button"
+              onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+            >
+              ログアウト
+            </button>
+          </div>
+        )}
+        <h1 className="header_title">Todo List</h1>
         <div className="list_container">
           {error && (
             <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
               {error}
             </div>
           )}
-          
+
           <div className="add_button">
-            <input 
-              type="text" 
-              value={text} 
+            <input
+              type="text"
+              value={text}
               onChange={changeText}
               placeholder="新しいTodoを入力してください"
               disabled={loading}
@@ -127,7 +141,7 @@ export default function Home() {
             ) : (
               <ul>
                 {todos.length === 0 ? (
-                  <li style={{ textAlign: 'center', padding: '20px', color: '#666',listStyle: 'none' }}>
+                  <li style={{ textAlign: 'center', padding: '20px', color: '#666', listStyle: 'none' }}>
                     Todoがありません。新しいTodoを追加してください。
                   </li>
                 ) : (

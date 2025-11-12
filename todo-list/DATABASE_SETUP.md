@@ -105,3 +105,7 @@ npx prisma studio
 - **MySQL**: `mysql://USER:PASSWORD@HOST:PORT/DATABASE`
 - **PostgreSQL**: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`
 
+
+
+
+

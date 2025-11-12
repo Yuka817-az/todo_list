@@ -10,9 +10,10 @@ export interface Todo {
 }
 
 // すべてのTodoを取得
-export async function getAllTodos(): Promise<Todo[]> {
+export async function getAllTodos(userId?: number): Promise<Todo[]> {
   try {
     const todos = await prisma.todo.findMany({
+      where: userId ? { userId } : undefined,
       orderBy: {
         created_at: 'desc'
       }
@@ -31,12 +32,13 @@ export async function getAllTodos(): Promise<Todo[]> {
 }
 
 // 新しいTodoを追加
-export async function addTodo(text: string): Promise<Todo> {
+export async function addTodo(text: string, userId: number = 1): Promise<Todo> {
   try {
     const newTodo = await prisma.todo.create({
       data: {
         text: text.trim(),
-        completed: false
+        completed: false,
+        userId: userId
       }
     });
     
