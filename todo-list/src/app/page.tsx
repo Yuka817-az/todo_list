@@ -32,7 +32,7 @@ export default function Home() {
       setError('');
       const response = await fetch('/api/todos');
       const data = await response.json();
-      
+
       if (data.success) {
         setTodos(data.data);
       } else {
@@ -52,7 +52,7 @@ export default function Home() {
   //追加ボタンを押したら新しいtodoが追加される
   const addTodos = async () => {
     if (!text.trim()) return;
-    
+
     try {
       setError('');
       const response = await fetch('/api/todos', {
@@ -62,9 +62,9 @@ export default function Home() {
         },
         body: JSON.stringify({ text: text.trim() }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setTodos([data.data, ...todos]);
         setText("");
@@ -83,9 +83,9 @@ export default function Home() {
       const response = await fetch(`/api/todos/${id}`, {
         method: 'DELETE',
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setTodos(todos.filter(todo => todo.id !== id));
       } else {
@@ -99,41 +99,30 @@ export default function Home() {
   return (
     <>
       <main>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1>Todo List</h1>
-          {session && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '14px', color: '#666' }}>
-                {session.user?.email || 'ユーザー'}
-              </span>
-              <button
-                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                ログアウト
-              </button>
-            </div>
-          )}
-        </div>
+        {session && (
+          <div className="user_container">
+            <span >
+              {session.user?.email || 'ユーザー'}
+            </span>
+            <button className="logout_button"
+              onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+            >
+              ログアウト
+            </button>
+          </div>
+        )}
+        <h1 className="header_title">Todo List</h1>
         <div className="list_container">
           {error && (
             <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
               {error}
             </div>
           )}
-          
+
           <div className="add_button">
-            <input 
-              type="text" 
-              value={text} 
+            <input
+              type="text"
+              value={text}
               onChange={changeText}
               placeholder="新しいTodoを入力してください"
               disabled={loading}
@@ -152,7 +141,7 @@ export default function Home() {
             ) : (
               <ul>
                 {todos.length === 0 ? (
-                  <li style={{ textAlign: 'center', padding: '20px', color: '#666',listStyle: 'none' }}>
+                  <li style={{ textAlign: 'center', padding: '20px', color: '#666', listStyle: 'none' }}>
                     Todoがありません。新しいTodoを追加してください。
                   </li>
                 ) : (
