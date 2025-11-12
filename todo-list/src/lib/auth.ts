@@ -41,6 +41,21 @@ export const authOptions: NextAuthOptions = {
         session.user.id = (token as any).id as string;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // ログイン後のリダイレクト先を設定
+      if (url === `${baseUrl}/auth/signin`) {
+        return `${baseUrl}/`;
+      }
+      // 相対URLの場合はbaseUrlを追加
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // 同じドメインの場合はそのまま
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      return baseUrl;
     }
   },
   session: {

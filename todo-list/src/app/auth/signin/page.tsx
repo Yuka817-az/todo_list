@@ -33,7 +33,11 @@ export default function SignIn() {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          signIn("credentials", { email, password })
+          signIn("credentials", { 
+            email, 
+            password,
+            callbackUrl: "/" // ログイン成功後のリダイレクト先
+          })
         }}
         className="space-y-4"
       >

@@ -2,6 +2,7 @@
 
 import { NextPage } from "next";
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import "./globals.scss";
 
 interface Todo {
@@ -13,6 +14,7 @@ interface Todo {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
   const [text, setText] = useState<string>('')
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -97,7 +99,30 @@ export default function Home() {
   return (
     <>
       <main>
-        <h1>Todo List</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h1>Todo List</h1>
+          {session && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                {session.user?.email || 'ユーザー'}
+              </span>
+              <button
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                ログアウト
+              </button>
+            </div>
+          )}
+        </div>
         <div className="list_container">
           {error && (
             <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
